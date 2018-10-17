@@ -2,7 +2,7 @@ require('dotenv').config();
 
 var express = require('express');
 var app = express();
-const port = process.env.PORT || 5000;
+// const port = process.env.PORT || 5000;
 var user = require('./controllers/usercontroller');
 var item = require('./controllers/itemcontroller');
 var booking = require('./controllers/bookingcontroller');
@@ -29,6 +29,6 @@ app.get('/api/hello', (req, res) => {
     res.send({ express: 'Hello From Express' });
 })
 
-app.listen(port, function(){
-    console.log(`App is listening on ${port}.`)
+app.listen(process.env.PORT, function(){
+    console.log(`App is listening on ${process.env.PORT}.`)
 });
