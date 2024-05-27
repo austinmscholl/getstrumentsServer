@@ -1,9 +1,6 @@
-//1                        //2
-module.exports = function(req, res, next){
-    //3                    //4
-    res.header('access-control-allow-origin', '*');
-    res.header('access-control-allow-methods', 'GET, POST, PUT, DELETE'); //5
-    res.header('access-control-allow-headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization'); //6
-    //7
+module.exports = function(req, res, next) {
+    res.header('Access-Control-Allow-Origin', '*'); // Replace '*' with specific origins in production
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
     next();
-   };
+};

@@ -1,11 +1,12 @@
 {
   "name": "getyourgearapp",
   "version": "1.0.0",
-  "description": "app for renting music gear",
-  "main": "app.js",
+  "description": "App for renting music gear",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js"
+    "start": "node index.js",
+    "dev": "nodemon index.js"
   },
   "author": "Austin Scholl",
   "license": "MIT",
@@ -18,6 +19,7 @@
     "jsonwebtoken": "^8.2.0",
     "pg": "^7.4.1",
     "pg-hstore": "^2.3.2",
-    "sequelize": "^4.37.0"
+    "sequelize": "^4.37.0",
+    "nodemon": "^2.0.15"
   }
 }

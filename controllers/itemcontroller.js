@@ -1,89 +1,87 @@
-var express = require('express')
-var router = express.Router()    
-var sequelize = require('../db');
-var User = sequelize.import('../models/user');
-var Item = sequelize.import('../models/item');
-var bcrypt = require('bcryptjs');
-var jwt = require('jsonwebtoken'); 
-// Item.sync({force:'true'})
-
+const express = require('express');
+const router = express.Router();
+const sequelize = require('../db');
+const Item = sequelize.import('../models/item');
 const validateSession = require('../middleware/validate-session');
 
-//used to create an item
-router.post('/', validateSession, function(req, res) {
-    const itemFromRequest = {
-        type: req.body.item.type,
-        brand: req.body.item.brand,
-        model: req.body.item.model,
-        notes: req.body.item.notes,
-        location: req.body.item.location,
-        owner: req.user.id,
-        availability: req.body.item.availability,
-        rating: req.body.item.rating
-        // dailyCost: req.body.item.dailyCost
-    }
-    
-    Item.create(itemFromRequest).then(
-      function createSuccess(user) {
-        var token = jwt.sign({id: user.id}, process.env.JWT_SECRET, {expiresIn: 60*60*24});
-        res.json({
-          user: user,
-          message: 'created',
-          sessionToken: token
+// Create an item
+router.post('/', validateSession, async (req, res) => {
+    try {
+        const itemFromRequest = {
+            type: req.body.item.type,
+            brand: req.body.item.brand,
+            model: req.body.item.model,
+            notes: req.body.item.notes,
+            location: req.body.item.location,
+            owner: req.user.id,
+            availability: req.body.item.availability,
+            rating: req.body.item.rating
+        };
+
+        const item = await Item.create(itemFromRequest);
+        res.status(201).json({
+            item: item,
+            message: 'Item successfully created'
         });
-      },
-      function createError(err) {
-        res.send(500, err.message);
-      }
-    );
-});
-
-//used to getall items, may not be needed
-// router.get('/', validateSession, function(req, res) {
-//     Item.findAll()
-//         .then(item => res.status(200).json(item))
-//         .catch(err => res.status(500).json({ error: err }))
-// });
-
-router.get('/', validateSession, function(req, res) {
-    Item.findAll({ where: { owner: req.user.id }})
-        .then(item => res.status(200).json(item))
-        .catch(err => res.status(500).json({ error: err }))
-})
-
-//used to get items by type
-router.get('/rent/:type', validateSession, function(req, res) {
-    Item.findAll({ where: { type: req.params.type }})
-        .then(item => res.status(200).json(item))
-        .catch(err => res.status(500).json({ error: err }))
-});
-
-//
-router.get('/:id', validateSession, function(req, res) {
-    Item.findOne({ where: { id: req.params.id }})
-        .then(item => res.status(200).json(item))
-        .catch(err => res.status(500).json({ error: err }))
-})
-
-//used to update item and/or change AVAILABILITY
-router.put('/:id', validateSession, function(req, res) {
-    if (!req.errors) {
-        Item.update(req.body.item, { where: { id: req.params.id }})         //req.body -> req.item.body OR req.body.item
-            .then(item => res.status(200).json(item))
-            .catch(err => res.status(500).json({ error: err}))
-    } else {
-        res.status(500).json(req.errors)
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
 });
 
-router.delete('/:id', validateSession, function(req, res) {
-    if (!req.errors) {
-        Item.destroy({ where: { id: req.params.id }})
-            .then(item => res.status(200).json(item))
-            .catch(err => res.status(500).json({ error: err }))
-    } else {
-        res.status(500).json(req.errors)
+// Get all items for the authenticated user
+router.get('/', validateSession, async (req, res) => {
+    try {
+        const items = await Item.findAll({ where: { owner: req.user.id }});
+        res.status(200).json(items);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
 });
-  
+
+// Get items by type
+router.get('/rent/:type', validateSession, async (req, res) => {
+    try {
+        const items = await Item.findAll({ where: { type: req.params.type }});
+        res.status(200).json(items);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Get item by ID
+router.get('/:id', validateSession, async (req, res) => {
+    try {
+        const item = await Item.findOne({ where: { id: req.params.id }});
+        res.status(200).json(item);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Update item by ID
+router.put('/:id', validateSession, async (req, res) => {
+    try {
+        const updated = await Item.update(req.body.item, { where: { id: req.params.id, owner: req.user.id }});
+        if (updated[0] === 0) {
+            return res.status(404).json({ error: 'Item not found or not authorized' });
+        }
+        res.status(200).json({ message: 'Item successfully updated' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Delete item by ID
+router.delete('/:id', validateSession, async (req, res) => {
+    try {
+        const deleted = await Item.destroy({ where: { id: req.params.id, owner: req.user.id }});
+        if (deleted === 0) {
+            return res.status(404).json({ error: 'Item not found or not authorized' });
+        }
+        res.status(200).json({ message: 'Item successfully deleted' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 module.exports = router;

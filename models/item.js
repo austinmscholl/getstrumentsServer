@@ -1,21 +1,19 @@
-
 module.exports = (sequelize, DataTypes) => {
     const Item = sequelize.define('item', {
         type: {
             type: DataTypes.STRING,
             allowNull: false
-        }, 
+        },
         brand: {
             type: DataTypes.STRING,
             allowNull: false
-        }, 
+        },
         model: {
             type: DataTypes.STRING,
             allowNull: false
         },
         notes: {
-            type: DataTypes.STRING,
-            allowNull: false
+            type: DataTypes.STRING
         },
         location: {
             type: DataTypes.STRING,
@@ -30,23 +28,21 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false
         },
         rating: {
-            type: DataTypes.INTEGER,
-            allowNull: true,
-            validate: {
-                min: 1,
-                max: 10
-            }
+            type: DataTypes.FLOAT
         }
-        // dailyCost: {
-        //     type: DataTypes.INTEGER,
-        //     allowNull: false,
-        //     validate: {
-        //         isInt: true
-        //     }
-        // }
     });
 
-    // Item.belongsToMany() ???
+    Item.associate = models => {
+        Item.belongsTo(models.User, {
+            foreignKey: 'owner',
+            onDelete: 'CASCADE'
+        });
+
+        Item.hasMany(models.Booking, {
+            foreignKey: 'itemId',
+            onDelete: 'CASCADE'
+        });
+    };
 
     return Item;
-}
+};
